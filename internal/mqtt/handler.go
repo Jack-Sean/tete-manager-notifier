@@ -346,7 +346,7 @@ func (c *Client) doChargeNotification(charge *models.Charge) {
 	content := fmt.Sprintf(`时间: %s→%s | 历时: %s
 充入: %.1f kWh | 类型: %s
 表显: %.0f→%.0f km (+%.1f km)
-电量: %.0f→%.0f%% (+%.1f%%)`,
+电量: %.0f→%.0f%% (+%.0f%%)`,
 		charge.StartDate.Local().Format("15:04"), charge.EndDate.Local().Format("15:04"), formatDuration(charge.DurationMin),
 		charge.ChargeEnergyAdded, chargeType,
 		charge.StartIdealRangeKM, charge.EndIdealRangeKM, charge.EndIdealRangeKM-charge.StartIdealRangeKM,
@@ -457,7 +457,7 @@ func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 	content := fmt.Sprintf(`时间: %s→%s | 历时: %s
 距离: %.1f km | 均速: %.1f km/h
 表显: %.0f→%.0f km (-%.1f km)
-电量: %.0f→%.0f%% (-%.1f%%) 达成率: %.1f%%`,
+电量: %.0f→%.0f%% (-%.0f%%) 达成率: %.1f%%`,
 		drive.StartDate.Local().Format("15:04"), drive.EndDate.Local().Format("15:04"), formatDuration(drive.DurationMin),
 		drive.Distance, avgSpeed,
 		drive.StartIdealRangeKM, drive.EndIdealRangeKM, rangeReduced,
