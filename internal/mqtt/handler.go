@@ -39,6 +39,9 @@ type Client struct {
 
 	retryCountDrive  int
 	retryCountCharge int
+
+	tripStartNotified      bool
+	tripStartDebounceTimer *time.Timer
 }
 
 func NewClient(cfg *config.Config) *Client {
@@ -51,6 +54,7 @@ func NewClient(cfg *config.Config) *Client {
 		lastBatteryLevel:  0,
 		lastIdealRangeKM:  0,
 		lastState:         "",
+		tripStartNotified: false,
 	}
 }
 
