@@ -140,6 +140,23 @@ func (c *Client) messageHandler(client mqtt.Client, msg mqtt.Message) {
 		if c.lastState != payload {
 			c.lastState = payload
 			isDrive = true
+
+			if payload == "driving" && !c.tripStartNotified {
+				if c.tripStartDebounceTimer != nil {
+					c.tripStartDebounceTimer.Stop()
+				}
+				c.tripStartDebounceTimer = time.AfterFunc(
+					time.Duration(c.cfg.PushDebounceSec)*time.Second,
+					c.processTripStart,
+				)
+				log.Printf("[行程开始] state 变为 driving，启动 %d 秒防抖", c.cfg.PushDebounceSec)
+			} else if payload != "driving" {
+				if c.tripStartDebounceTimer != nil {
+					c.tripStartDebounceTimer.Stop()
+					c.tripStartDebounceTimer = nil
+				}
+				log.Printf("[行程开始] state 变为 %s，取消防抖", payload)
+			}
 		}
 		c.mu.Unlock()
 
