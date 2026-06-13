@@ -249,6 +249,36 @@ func (c *Client) scheduleStateSettle() {
 	})
 }
 
+func (c *Client) processTripStart() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.lastState != "driving" || c.tripStartNotified {
+		log.Println("[行程开始] 防抖到期，但条件不满足，跳过推送")
+		return
+	}
+
+	c.tripStartNotified = true
+	now := time.Now().Local().Format("15:04")
+
+	title := fmt.Sprintf("🚗 %s 行程开始 📍", c.carName)
+	content := fmt.Sprintf(`时间: %s
+电量: %.0f%%
+表显: %.1f km`,
+		now, c.lastBatteryLevel, c.lastIdealRangeKM,
+	)
+
+	log.Printf("[行程开始] 推送通知: %s", title)
+
+	go func() {
+		if err := notifier.SendNotification(c.cfg.APIToken, title, content); err != nil {
+			log.Printf("❌ 行程开始通知推送失败: %v", err)
+		} else {
+			log.Println("✅ 行程开始通知已推送")
+		}
+	}()
+}
+
 func (c *Client) checkChargingCondition() {
 	defer func() {
 		if r := recover(); r != nil {
