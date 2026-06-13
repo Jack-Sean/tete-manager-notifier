@@ -522,6 +522,10 @@ func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 			log.Printf("❌ 行程通知推送失败: %v", err)
 		} else {
 			log.Printf("✅ 行程通知已推送 (ID: %d)", drive.ID)
+			c.mu.Lock()
+			c.tripStartNotified = false
+			c.mu.Unlock()
+			log.Println("[行程开始] tripStartNotified 已重置")
 		}
 	}()
 }
