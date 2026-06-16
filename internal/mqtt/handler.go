@@ -508,7 +508,6 @@ func (c *Client) tryWithBackoff(retryCount *int, maxRetries int, baseDelaySec in
 // 行程通知内容
 func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 	drive := &result.Drive
-	socUsed := result.StartSOC - result.EndSOC
 	rangeReduced := drive.StartIdealRangeKM - drive.EndIdealRangeKM
 	achieveRate := 0.0
 	if rangeReduced > 0 {
@@ -529,13 +528,11 @@ func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 		}
 	}
 
-	content := fmt.Sprintf("时间: %s→%s｜历时: %s｜距离: %.1f km\n表显: %.0f→%.0f km｜电量: %.0f→%.0f%%｜达成率: %.1f%%\n起点: %s｜终点: %s",
-		drive.StartDate.Local().Format("15:04"), drive.EndDate.Local().Format("15:04"), formatDuration(drive.DurationMin),
-		drive.Distance,
-		drive.StartIdealRangeKM, drive.EndIdealRangeKM, rangeReduced,
-		result.StartSOC, result.EndSOC, socUsed, achieveRate,
-		startAddr, endAddr,
-	)
+		content := fmt.Sprintf("时间: %s→%s｜历时: %s\n表显: %.0f→%.0f km(-%.1f km) | 达成率: %.1f%%\n起点: %s｜终点: %s",
+			drive.StartDate.Local().Format("15:04"), drive.EndDate.Local().Format("15:04"), formatDuration(drive.DurationMin),
+			drive.StartIdealRangeKM, drive.EndIdealRangeKM, rangeReduced, achieveRate,
+			startAddr, endAddr,
+		)
 
 	title := fmt.Sprintf("🚗 %s 行程通知 📍", c.carName)
 
