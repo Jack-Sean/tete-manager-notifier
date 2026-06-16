@@ -65,13 +65,15 @@ func (c *AmapClient) reverseGeocode(lat, lng float64) (*RegeoResponse, error) {
 }
 
 func formatAddress(resp *RegeoResponse) string {
+	// 优先使用 POI 名称（通常已包含足够信息）
+	if len(resp.Regeocode.Pois) > 0 && resp.Regeocode.Pois[0].Name != "" {
+		return resp.Regeocode.Pois[0].Name
+	}
+
 	comp := resp.Regeocode.AddressComponent
 	district := strings.TrimSuffix(comp.District, "区")
-	if len(resp.Regeocode.Pois) > 0 && resp.Regeocode.Pois[0].Name != "" {
-		return district + resp.Regeocode.Pois[0].Name
-	}
+
 	if comp.Street != "" {
-		// streetNumber 可能是 string 或 object
 		var streetNum string
 		switch v := comp.StreetNumber.(type) {
 		case string:
@@ -86,6 +88,7 @@ func formatAddress(resp *RegeoResponse) string {
 		}
 		return district + comp.Street
 	}
+
 	if district != "" {
 		return district
 	}
