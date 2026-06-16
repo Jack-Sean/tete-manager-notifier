@@ -21,6 +21,7 @@ type Config struct {
 	CarID           int
 	LogLevel        string
 	PushDebounceSec int // 推送防抖初始时间，后续会进行3次指数退避重试，按(次数-1)倍增加
+	AmapAPIKey       string
 }
 
 func Load() *Config {
@@ -40,6 +41,7 @@ func Load() *Config {
 		CarID:           mustInt(os.Getenv("CAR_ID"), 1),
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		PushDebounceSec: mustInt(os.Getenv("PUSH_DEBOUNCE_SECONDS"), 5),
+		AmapAPIKey:       os.Getenv("AMAP_API_KEY"),
 	}
 }
 
