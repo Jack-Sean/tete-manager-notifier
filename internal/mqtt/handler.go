@@ -514,16 +514,27 @@ func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 	if rangeReduced > 0 {
 		achieveRate = (drive.Distance / rangeReduced) * 100
 	}
-	avgSpeed := calculateAvgSpeed(drive.Distance, drive.DurationMin)
 
-	content := fmt.Sprintf(`时间: %s→%s | 历时: %s
-距离: %.1f km | 均速: %.1f km/h
-表显: %.0f→%.0f km (-%.1f km)
-电量: %.0f→%.0f%% (-%.0f%%) 达成率: %.1f%%`,
+	startAddr := "定位获取失败"
+	endAddr := "定位获取失败"
+	if c.cfg.AmapAPIKey != "" {
+		amapClient := geocode.NewAmapClient(c.cfg.AmapAPIKey)
+		if result.StartLat != 0 && result.StartLng != 0 {
+			startAddr = amapClient.GetAddress(result.StartLat, result.StartLng)
+			log.Printf("[行程结束] 获取起点地址: %s", startAddr)
+		}
+		if result.EndLat != 0 && result.EndLng != 0 {
+			endAddr = amapClient.GetAddress(result.EndLat, result.EndLng)
+			log.Printf("[行程结束] 获取终点地址: %s", endAddr)
+		}
+	}
+
+	content := fmt.Sprintf("时间: %s→%s｜历时: %s｜距离: %.1f km\n表显: %.0f→%.0f km｜电量: %.0f→%.0f%%｜达成率: %.1f%%\n起点: %s｜终点: %s",
 		drive.StartDate.Local().Format("15:04"), drive.EndDate.Local().Format("15:04"), formatDuration(drive.DurationMin),
-		drive.Distance, avgSpeed,
+		drive.Distance,
 		drive.StartIdealRangeKM, drive.EndIdealRangeKM, rangeReduced,
 		result.StartSOC, result.EndSOC, socUsed, achieveRate,
+		startAddr, endAddr,
 	)
 
 	title := fmt.Sprintf("🚗 %s 行程通知 📍", c.carName)
