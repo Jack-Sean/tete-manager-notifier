@@ -70,10 +70,20 @@ func formatAddress(resp *RegeoResponse) string {
 	if len(resp.Regeocode.Pois) > 0 && resp.Regeocode.Pois[0].Name != "" {
 		return district + resp.Regeocode.Pois[0].Name
 	}
-	if comp.Street != "" && comp.StreetNumber != "" {
-		return district + comp.Street + comp.StreetNumber
-	}
 	if comp.Street != "" {
+		// streetNumber 可能是 string 或 object
+		var streetNum string
+		switch v := comp.StreetNumber.(type) {
+		case string:
+			streetNum = v
+		case map[string]interface{}:
+			if num, ok := v["number"].(string); ok {
+				streetNum = num
+			}
+		}
+		if streetNum != "" {
+			return district + comp.Street + streetNum
+		}
 		return district + comp.Street
 	}
 	if district != "" {
@@ -86,9 +96,9 @@ type RegeoResponse struct {
 	Status    string `json:"status"`
 	Regeocode struct {
 		AddressComponent struct {
-			District      string `json:"district"`
-			Street        string `json:"street"`
-			StreetNumber  string `json:"streetNumber"`
+			District     string      `json:"district"`
+			Street       string      `json:"street"`
+			StreetNumber interface{} `json:"streetNumber"`
 		} `json:"addressComponent"`
 		Pois []struct {
 			Name string `json:"name"`
