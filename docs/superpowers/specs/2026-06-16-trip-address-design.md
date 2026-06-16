@@ -66,7 +66,22 @@ GET https://restapi.amap.com/v3/geocode/regeo?key={API_KEY}&location={lng},{lat}
 }
 ```
 
-## 数据来源
+## 坐标转换
+
+Tesla/GPS 使用 **WGS84** 坐标系，高德使用 **GCJ02（火星坐标系）**。
+
+调用高德 API 前必须转换：WGS84 → GCJ02
+
+### 转换算法
+
+在 `internal/geocode/convert.go` 中实现标准转换算法：
+
+```go
+// WGS84ToGCJ02 将 WGS84 坐标转换为 GCJ02
+func WGS84ToGCJ02(lat, lng float64) (float64, float64)
+```
+
+算法参考：https://github.com/wandergis/coordtransform
 
 ### 行程开始地址
 
@@ -91,6 +106,7 @@ GET https://restapi.amap.com/v3/geocode/regeo?key={API_KEY}&location={lng},{lat}
 | 文件 | 说明 |
 |------|------|
 | `internal/geocode/amap.go` | 高德 API 调用封装，地址格式化逻辑 |
+| `internal/geocode/convert.go` | WGS84 → GCJ02 坐标转换算法 |
 
 ### 修改文件
 
@@ -112,9 +128,10 @@ type AmapClient struct {
 func NewAmapClient(apiKey string) *AmapClient
 
 // GetAddress 获取简短地址（如"萧山万象汇"）
+// 内部会自动将 WGS84 转换为 GCJ02
 func (c *AmapClient) GetAddress(lat, lng float64) string
 
-// 内部方法：调用高德 API
+// 内部方法：调用高德 API（参数为 GCJ02 坐标）
 func (c *AmapClient) reverseGeocode(lat, lng float64) (*RegeoResponse, error)
 
 // 内部方法：格式化地址
