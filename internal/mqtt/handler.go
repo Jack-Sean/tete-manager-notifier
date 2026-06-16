@@ -528,7 +528,7 @@ func (c *Client) doTripNotification(result *db.DriveWithSOC) {
 		}
 	}
 
-		content := fmt.Sprintf("时间: %s→%s｜历时: %s\n表显: %.0f→%.0f km(-%.1f km) | 达成率: %.1f%%\n起点: %s｜终点: %s",
+		content := fmt.Sprintf("时间: %s→%s｜历时: %s\n表显: %.0f→%.0f (-%.1f km) | 达成率: %.1f%%\n起点: %s｜终点: %s",
 			drive.StartDate.Local().Format("15:04"), drive.EndDate.Local().Format("15:04"), formatDuration(drive.DurationMin),
 			drive.StartIdealRangeKM, drive.EndIdealRangeKM, rangeReduced, achieveRate,
 			startAddr, endAddr,
