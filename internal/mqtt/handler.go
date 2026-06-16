@@ -11,6 +11,7 @@ import (
 
 	"github.com/wen-ryon/tete-manager-notifier/internal/config"
 	"github.com/wen-ryon/tete-manager-notifier/internal/db"
+	"github.com/wen-ryon/tete-manager-notifier/internal/geocode"
 	"github.com/wen-ryon/tete-manager-notifier/internal/models"
 	"github.com/wen-ryon/tete-manager-notifier/internal/notifier"
 
@@ -261,11 +262,21 @@ func (c *Client) processTripStart() {
 	c.tripStartNotified = true
 	now := time.Now().Local().Format("15:04")
 
+	address := "定位获取失败"
+	if c.cfg.AmapAPIKey != "" {
+		pos, err := db.GetLatestPosition(c.cfg.CarID)
+		if err == nil && pos.Latitude != 0 && pos.Longitude != 0 {
+			amapClient := geocode.NewAmapClient(c.cfg.AmapAPIKey)
+			address = amapClient.GetAddress(pos.Latitude, pos.Longitude)
+			log.Printf("[行程开始] 获取地址: %s", address)
+		} else {
+			log.Printf("[行程开始] 获取位置失败: %v", err)
+		}
+	}
+
 	title := fmt.Sprintf("🚗 %s 行程开始 📍", c.carName)
-	content := fmt.Sprintf(`时间: %s
-电量: %.0f%%
-表显: %.1f km`,
-		now, c.lastBatteryLevel, c.lastIdealRangeKM,
+	content := fmt.Sprintf("时间: %s｜表显: %.1f km｜电量: %.0f%%\n位置: %s",
+		now, c.lastIdealRangeKM, c.lastBatteryLevel, address,
 	)
 
 	log.Printf("[行程开始] 推送通知: %s", title)
