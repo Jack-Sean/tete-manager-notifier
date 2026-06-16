@@ -62,23 +62,46 @@ func GetCarName(carID int) (string, error) {
 
 type DriveWithSOC struct {
 	models.Drive
-	StartSOC float64 `gorm:"column:start_soc"`
-	EndSOC   float64 `gorm:"column:end_soc"`
+	StartSOC    float64 `gorm:"column:start_soc"`
+	EndSOC      float64 `gorm:"column:end_soc"`
+	StartLat    float64 `gorm:"column:start_lat"`
+	StartLng    float64 `gorm:"column:start_lng"`
+	EndLat      float64 `gorm:"column:end_lat"`
+	EndLng      float64 `gorm:"column:end_lng"`
 }
 
 func GetLatestDrive(carID int) (*DriveWithSOC, error) {
 	var result DriveWithSOC
 
 	err := DB.Table("drives d").
-		Select(`d.*, 
+		Select(`d.*,
 				COALESCE(start_pos.usable_battery_level, start_pos.battery_level, 0) as start_soc,
-				COALESCE(end_pos.usable_battery_level, end_pos.battery_level, 0) as end_soc`).
+				COALESCE(end_pos.usable_battery_level, end_pos.battery_level, 0) as end_soc,
+				start_pos.latitude as start_lat,
+				start_pos.longitude as start_lng,
+				end_pos.latitude as end_lat,
+				end_pos.longitude as end_lng`).
 		Joins("LEFT JOIN positions start_pos ON d.start_position_id = start_pos.id").
 		Joins("LEFT JOIN positions end_pos ON d.end_position_id = end_pos.id").
 		Where("d.car_id = ?", carID).
 		Order("d.id desc").
 		First(&result).Error
 
+	return &result, err
+}
+
+type Position struct {
+	Latitude  float64
+	Longitude float64
+}
+
+func GetLatestPosition(carID int) (*Position, error) {
+	var result Position
+	err := DB.Table("positions").
+		Select("latitude, longitude").
+		Where("car_id = ?", carID).
+		Order("id desc").
+		First(&result).Error
 	return &result, err
 }
 
