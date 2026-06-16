@@ -275,8 +275,8 @@ func (c *Client) processTripStart() {
 	}
 
 	title := fmt.Sprintf("🚗 %s 行程开始 📍", c.carName)
-	content := fmt.Sprintf("时间: %s｜表显: %.1f km｜电量: %.0f%%\n位置: %s",
-		now, c.lastIdealRangeKM, c.lastBatteryLevel, address,
+	content := fmt.Sprintf("时间: %s｜表显: %.1f km\n位置: %s",
+		now, c.lastIdealRangeKM, address,
 	)
 
 	log.Printf("[行程开始] 推送通知: %s", title)
